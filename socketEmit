@@ -1,0 +1,17 @@
+|"receiveMessage"|
+|"recallMessage"|
+|"receiveGroupMessage"|
+|"recallGroupMessage"|
+|"receiveFriendRequest"|
+|"rejectFriendRequest"|
+|"receiveGroupRequest"
+|"rejectGroupRequest"
+|"joinGroup"|
+|"newGroupMember"|
+|"userLeaveGroup"|
+|"userOnline"|
+|"userOffline"|
+
+
+
+onlineUser
