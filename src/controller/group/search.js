@@ -4,7 +4,7 @@ import { database } from "../../config/db.js";
  * Search for groups
  * @route POST /api/group/search
  */
-export const findGroups = async (req, res) => {
+export const findGroups = async (req, res, next) => {
     try {
         const { groupName, groupId, adminName } = req.body;
         if (!groupName && !groupId && !adminName) {
@@ -45,7 +45,6 @@ export const findGroups = async (req, res) => {
             })
         })
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }

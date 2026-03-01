@@ -4,7 +4,7 @@ import { database } from "../../config/db.js";
  * Get all posts for a user
  * @route GET /api/post/:id
  */
-export const getAllPost = async (req, res) => {
+export const getAllPost = async (req, res, next) => {
     try {
         const senderId = req.params.id
         if (!senderId) {
@@ -31,8 +31,7 @@ export const getAllPost = async (req, res) => {
         })
         )
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error")
+        next(e);
     }
 }
 
@@ -40,7 +39,7 @@ export const getAllPost = async (req, res) => {
  * Get all posts from user's friends
  * @route GET /api/post/friends/:id
  */
-export const getAllFriendPost = async (req, res) => {
+export const getAllFriendPost = async (req, res, next) => {
     try {
         const userId = req.params.id;
         if (!userId) {
@@ -86,7 +85,6 @@ export const getAllFriendPost = async (req, res) => {
             })
         )
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }

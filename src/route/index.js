@@ -5,6 +5,7 @@ import invitationRoutes from './invitationRoutes.js';
 import postRoutes from './postRoutes.js';
 import { verifyJWT } from '../middleware/verifyJWT.js';
 import rateLimit from 'express-rate-limit';
+import handleServerErrors from '../controller/serverErrorHandle.js';
 
 /**
  * @param {express.Application} app - 
@@ -16,17 +17,17 @@ const limiter= rateLimit({
 })
 const setupRoutes = (app) => {
     
-    app.use('/api/user', userRoutes);
+    app.use('/api/user', userRoutes, handleServerErrors);
 
-    app.use('/api/chat',verifyJWT,chatRoutes);
+    app.use('/api/chat',verifyJWT,chatRoutes, handleServerErrors);
 
-    app.use('/api/group',verifyJWT, groupRoutes);
+    app.use('/api/group',verifyJWT, groupRoutes, handleServerErrors);
 
     // Invitation-related routes
-    app.use('/api/invitation', invitationRoutes);
+    app.use('/api/invitation', invitationRoutes, handleServerErrors);
 
     // Post-related routes
-    app.use('/api/post', postRoutes);
+    app.use('/api/post', postRoutes, handleServerErrors);
 };
 
 export default setupRoutes;

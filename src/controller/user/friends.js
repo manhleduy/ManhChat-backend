@@ -7,7 +7,7 @@ import { io } from "../../config/socket.js";
  * Get all friends of a user
  * @route GET /api/user/friends/:id
  */
-export const GetAllFriend = async (req, res) => {
+export const GetAllFriend = async (req, res, next) => {
     try {
         const id = req.params.id;
         if (!id) {
@@ -74,8 +74,7 @@ export const GetAllFriend = async (req, res) => {
             friendList: friendList
         })
     } catch (e) {
-        console.log(e)
-        return res.status(500).json("server error");
+        next(e);
     }
 }
 
@@ -83,7 +82,7 @@ export const GetAllFriend = async (req, res) => {
  * Create user friend connection (send friend request)
  * @route POST /api/user/friends/add/:id
  */
-export const createUserConnect = async (req, res) => {
+export const createUserConnect = async (req, res, next) => {
     try {
         const userId = req.params.id;
         const { friendId } = req.body
@@ -106,8 +105,7 @@ export const createUserConnect = async (req, res) => {
         
         res.status(201).json("created successful");
     } catch (e) {
-        console.log(e)
-        return res.status(500).json("server error");
+        next(e);
     }
 }
 
@@ -115,7 +113,7 @@ export const createUserConnect = async (req, res) => {
  * Delete/remove friend
  * @route DELETE /api/user/friends/:id
  */
-export const DeleteFriend = async (req, res) => {
+export const DeleteFriend = async (req, res, next) => {
     try {
         const userId = req.params.id;
         const { friendId } = req.body;
@@ -139,7 +137,6 @@ export const DeleteFriend = async (req, res) => {
         
         return res.status(200).json("delete successfully")
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }

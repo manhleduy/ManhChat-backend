@@ -5,7 +5,7 @@ import cloudinary from "../../config/cloundinary.js";
  * Create a new post
  * @route POST /api/post/create/:id
  */
-export const createPost = async (req, res) => {
+export const createPost = async (req, res, next) => {
     try {
         const senderId = req.params.id;
         const { content, file } = req.body
@@ -24,8 +24,7 @@ export const createPost = async (req, res) => {
             `, [senderId, content, uploadResponse.secure_url, createdAt])
         return res.status(201).json("post successfully");
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }
 
@@ -33,7 +32,7 @@ export const createPost = async (req, res) => {
  * Delete a post
  * @route DELETE /api/post/:id
  */
-export const deletePost = async (req, res) => {
+export const deletePost = async (req, res, next) => {
     try {
         const  postId  = req.params.id;
         if (!postId || postId <= 0) {
@@ -45,8 +44,7 @@ export const deletePost = async (req, res) => {
             `, [postId])
         return res.status(200).json("you have delete this post")
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error")
+        next(e);
     }
 }
 
@@ -54,7 +52,7 @@ export const deletePost = async (req, res) => {
  * Like a post
  * @route PUT /api/post/:id
  */
-export const likePost = async (req, res) => {
+export const likePost = async (req, res, next) => {
     try {
         const postId = req.params.id;
         if (!postId) return res.status(400).json("missing id");
@@ -65,7 +63,6 @@ export const likePost = async (req, res) => {
             `, [postId]);
         return res.status(200).json("successful");
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }

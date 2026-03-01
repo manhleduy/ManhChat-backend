@@ -6,7 +6,7 @@ import { io } from "../../config/socket.js";
  * Send a group join request
  * @route POST /api/invitation/group/create/:id
  */
-export const SendGroupProposal = async (req, res) => {
+export const SendGroupProposal = async (req, res, next) => {
     try {
         const userId = req.params.id;
         const { adminName, content, groupId } = req.body;
@@ -48,8 +48,7 @@ export const SendGroupProposal = async (req, res) => {
 
         return res.status(201).json("successfully")
     } catch (e) {
-        console.log(e)
-        return res.status(500).json("server error")
+        next(e);
     }
 }
 
@@ -57,7 +56,7 @@ export const SendGroupProposal = async (req, res) => {
  * Get all group requests (sent and received)
  * @route GET /api/invitation/group/:id
  */
-export const GetAllGroupRequest = async (req, res) => {
+export const GetAllGroupRequest = async (req, res, next) => {
     try {
         const userId = req.params.id;
         if (!userId) {
@@ -114,8 +113,7 @@ export const GetAllGroupRequest = async (req, res) => {
             })
         })
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }
 
@@ -123,7 +121,7 @@ export const GetAllGroupRequest = async (req, res) => {
  * Accept/Reject a group request
  * @route DELETE /api/invitation/group/:id
  */
-export const DeleteGroupInvitation = async (req, res) => {
+export const DeleteGroupInvitation = async (req, res, next) => {
     try {
         const memberId = req.params.id;
         const { groupId, adminId, action } = req.body;
@@ -157,7 +155,6 @@ export const DeleteGroupInvitation = async (req, res) => {
         )
         return res.status(200).json("delete successfully")
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }

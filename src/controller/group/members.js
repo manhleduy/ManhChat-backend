@@ -8,7 +8,7 @@ import { io } from "../../config/socket.js";
  * Add a member to a group
  * @route POST /api/group/members/add/:id
  */
-export const createGroupConnect = async (req, res) => {
+export const createGroupConnect = async (req, res, next) => {
     try {
         const groupId = req.params.id;
         const { adminId, memberId } = req.body
@@ -51,8 +51,7 @@ export const createGroupConnect = async (req, res) => {
         
         return res.status(201).json(' a member join in group')
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error or you have been on this group");
+        next(e);
     }
 }
 
@@ -60,7 +59,7 @@ export const createGroupConnect = async (req, res) => {
  * Remove a member from a group
  * @route DELETE /api/group/members/:id
  */
-export const deleteGroupConnect = async (req, res) => {
+export const deleteGroupConnect = async (req, res, next) => {
     try {
         const groupId = req.params.id;
         const { memberId } = req.body;
@@ -99,8 +98,7 @@ export const deleteGroupConnect = async (req, res) => {
         return res.status(200).json("you leave this group")
 
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error or you have been on this group");
+        next(e);
     }
 }
 
@@ -108,7 +106,7 @@ export const deleteGroupConnect = async (req, res) => {
  * Get all groups for a user
  * @route GET /api/group/:id
  */
-export const getAllGroup = async (req, res) => {
+export const getAllGroup = async (req, res, next) => {
     try {
         const userId = req.params.id;
         if (!userId) {
@@ -165,7 +163,6 @@ export const getAllGroup = async (req, res) => {
             groupList: groupList
         })
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }

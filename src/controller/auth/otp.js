@@ -4,7 +4,7 @@ import { sendOTPEmail, verifyOTP } from "../sendEmailController.js"
  * Send OTP to user email
  * @route POST /api/user/otp/send
  */
-export const SendOTPEmail = async (req, res) => {
+export const SendOTPEmail = async (req, res, next) => {
     try {
         const { email } = req.body;
         if (!email) return res.status(400).json("missing required data!");
@@ -15,8 +15,7 @@ export const SendOTPEmail = async (req, res) => {
         }
         return res.status(200).json(result.message);
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }
 
@@ -24,7 +23,7 @@ export const SendOTPEmail = async (req, res) => {
  * Verify OTP from user
  * @route POST /api/user/otp/verify
  */
-export const VerifyOTP = async (req, res) => {
+export const VerifyOTP = async (req, res, next) => {
     try {
         const { otp } = req.body;
 
@@ -34,7 +33,6 @@ export const VerifyOTP = async (req, res) => {
         }
         return res.status(200).json(result.message);
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }

@@ -4,7 +4,7 @@ import { database } from "../../config/db.js";
  * Mark a single chat message as read
  * @route PUT /api/chat/read/:id
  */
-export const handleIsRead = async (req, res) => {
+export const handleIsRead = async (req, res, next) => {
     try {
         const chatblockId = req.body.id
         const { userId } = req.body
@@ -15,8 +15,7 @@ export const handleIsRead = async (req, res) => {
             `, [chatblockId, userId])
         return res.status(200).json("readed")
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }
 
@@ -24,7 +23,7 @@ export const handleIsRead = async (req, res) => {
  * Mark all chats between two users as read
  * @route PUT /api/chat/read
  */
-export const MarkAsRead = async (req, res) => {
+export const MarkAsRead = async (req, res, next) => {
     try {
         const { receiverId, senderId } = req.body
         await database.query(`
@@ -34,7 +33,6 @@ export const MarkAsRead = async (req, res) => {
              `, [receiverId, senderId])
         return res.status(200).json("readed")
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }

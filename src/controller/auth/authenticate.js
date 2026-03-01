@@ -6,7 +6,7 @@ import { io } from "../../config/socket.js";
 
 dotenv.config()
 
-export const Logout = async (res, req) => {
+export const Logout = async (req, res, next) => {
     try {
         const cookies = req.cookies;
         if (!cookies?.secretToken) return res.sendStatus(204);
@@ -16,12 +16,11 @@ export const Logout = async (res, req) => {
             status: 204
         })
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error")
+        next(e);
     }
 }
 
-export const SignUp = async (req, res) => {
+export const SignUp = async (req, res, next) => {
     try {
         const { address, name, email, profilePic, phonenumber, birthday, password } = req.body;
         if (!name || !address || !email || !phonenumber || !password) {
@@ -55,12 +54,11 @@ export const SignUp = async (req, res) => {
         );
         res.status(201).json("you sign in successful")
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error")
+        next(e);
     }
 }
 
-export const Login = async (req, res) => {
+export const Login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
         if (!email || !password) {
@@ -114,7 +112,6 @@ export const Login = async (req, res) => {
             return res.status(400).json("cannot find user with email ?.Sign up with your email first", [email])
         }
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }

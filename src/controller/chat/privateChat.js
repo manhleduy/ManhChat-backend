@@ -3,6 +3,7 @@ import { getSenderSocketId } from "../redis/onlineUser.js";
 import { io } from "../../config/socket.js";
 import cloudinary from "../../config/cloundinary.js";
 import { fetchAndMergeWithStream, handleNewMessage } from "../redis/stream/friendMessage.js";
+
 async function uploadToCloudinary(fileString) {
     try {
         const result = await cloudinary.uploader.upload(fileString, {
@@ -19,7 +20,7 @@ async function uploadToCloudinary(fileString) {
  * Create a new private chat message
  * @route POST /api/chat/create/:id
  */
-export const CreateChat = async (req, res) => {
+export const CreateChat = async (req, res, next) => {
     const senderId = req.params.id;
     try {
         const { content, file, receiverId } = req.body;
@@ -98,8 +99,7 @@ export const CreateChat = async (req, res) => {
 
         return res.status(201).json("send successfully!")
     } catch (e) {
-        console.log(e)
-        return res.status(500).json('server error');
+        next(e);
     }
 }
 
@@ -107,7 +107,7 @@ export const CreateChat = async (req, res) => {
  * Get all private chat messages between two users
  * @route POST /api/chat/:id
  */
-export const GetAllChat = async (req, res) => {
+export const GetAllChat = async (req, res, next) => {
     const senderId = req.params.id;
     try {
         const { receiverId, limit = 20, offset = 0 } = req.body;
@@ -140,8 +140,7 @@ export const GetAllChat = async (req, res) => {
         
         return res.status(200).json(messages)
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server errror");
+        next(e);
     }
 }
 
@@ -149,7 +148,7 @@ export const GetAllChat = async (req, res) => {
  * Like a private chat message
  * @route PUT /api/chat/like/:id
  */
-export const LikeChat = async (req, res) => {
+export const LikeChat = async (req, res, next) => {
     try {
         const chatblockId = req.params.id;
         if (!chatblockId) {
@@ -176,8 +175,7 @@ export const LikeChat = async (req, res) => {
             WHERE id=$1`, [chatblockId]);
         return res.status(200).json("liked")
     } catch (e) {
-        console.log(e);
-        return res.status(500).json('server error');
+        next(e);
     }
 }
 
@@ -185,7 +183,7 @@ export const LikeChat = async (req, res) => {
  * Recall (delete) a private chat message
  * @route DELETE /api/chat/recall/:id
  */
-export const RecallChat = async (req, res) => {
+export const RecallChat = async (req, res, next) => {
     try {
         const userId = req.params.id;
         const { chatblockId } = req.body
@@ -215,7 +213,6 @@ export const RecallChat = async (req, res) => {
 
         return res.status(200).json("delete successfully");
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }

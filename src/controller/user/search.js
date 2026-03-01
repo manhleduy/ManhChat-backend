@@ -4,7 +4,7 @@ import { database } from "../../config/db.js";
  * Search for users by name, email, or phone number
  * @route POST /api/user/search
  */
-export const findUsers = async (req, res) => {
+export const findUsers = async (req, res, next) => {
     try {
         const { name, email, phonenumber } = req.body;
         const result = await database.query(`
@@ -31,7 +31,6 @@ export const findUsers = async (req, res) => {
             })
         })
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }

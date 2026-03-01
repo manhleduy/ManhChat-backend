@@ -4,7 +4,7 @@ import { database } from "../../config/db.js";
  * Delete user account
  * @route DELETE /api/user/account/:id
  */
-export const DeleteUser = async (req, res) => {
+export const DeleteUser = async (req, res, next) => {
     try {
         const id = req.params.id;
         await database.query(`
@@ -13,7 +13,6 @@ export const DeleteUser = async (req, res) => {
             `, [id])
         return res.status(200).json("delete successfully")
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }

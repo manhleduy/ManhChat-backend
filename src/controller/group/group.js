@@ -5,7 +5,7 @@ import { invalidateGroupListCache } from "../redis/userGroup.js";
  * Create a new group
  * @route POST /api/group/create
  */
-export const createGroup = async (req, res) => {
+export const createGroup = async (req, res, next) => {
     try {
         const { detail, adminId, groupName, isRestricted } = req.body;
         const createdAt = new Date();
@@ -34,8 +34,7 @@ export const createGroup = async (req, res) => {
         
         return res.status(201).json("successfully");
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }
 
@@ -43,7 +42,7 @@ export const createGroup = async (req, res) => {
  * Get group information and members
  * @route GET /api/group/info/:id
  */
-export const getGroupInfo = async (req, res) => {
+export const getGroupInfo = async (req, res, next) => {
     try {
         const groupId = req.params.id;
         if (!groupId) {
@@ -91,8 +90,7 @@ export const getGroupInfo = async (req, res) => {
             })[0]
         })
     } catch (e) {
-        console.log(e)
-        return res.status(500).json("server error");
+        next(e);
     }
 }
 
@@ -100,7 +98,7 @@ export const getGroupInfo = async (req, res) => {
  * Update group details
  * @route PUT /api/group/update/:id
  */
-export const updateGroup = async (req, res) => {
+export const updateGroup = async (req, res, next) => {
     try {
         const groupId = req.params.id;
         if (!groupId) {
@@ -130,8 +128,7 @@ export const updateGroup = async (req, res) => {
         
         return res.status(200).json("update successfully")
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }
 
@@ -139,7 +136,7 @@ export const updateGroup = async (req, res) => {
  * Delete a group
  * @route DELETE /api/group/:id
  */
-export const deleteGroup = async (req, res) => {
+export const deleteGroup = async (req, res, next) => {
     try {
         const { adminId, groupId } = req.body;
         if (!adminId || !groupId) {
@@ -166,7 +163,6 @@ export const deleteGroup = async (req, res) => {
         
         return res.status(200).json("delete successfully");
     } catch (e) {
-        console.log(e)
-        return res.status(500).json("server error");
+        next(e);
     }
 }

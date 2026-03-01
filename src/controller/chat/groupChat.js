@@ -21,7 +21,7 @@ async function uploadToCloudinary(fileString) {
  * Create a new group chat message
  * @route POST /api/chat/group/create/:id
  */
-export const CreateGroupChat = async (req, res) => {
+export const CreateGroupChat = async (req, res, next) => {
     try {
         const groupId = req.params.id;
         const { senderId, content, file } = req.body;
@@ -105,8 +105,7 @@ export const CreateGroupChat = async (req, res) => {
             likeNum: 0
         })
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }
 
@@ -114,7 +113,7 @@ export const CreateGroupChat = async (req, res) => {
  * Get all group chat messages for a group
  * @route POST /api/chat/group/:id
  */
-export const GetAllGroupChat = async (req, res) => {
+export const GetAllGroupChat = async (req, res, next) => {
     try {
         const groupId = req.params.id;
         const { memberId, limit = 20, offset = 0 } = req.body;
@@ -159,8 +158,7 @@ export const GetAllGroupChat = async (req, res) => {
         });
         return res.status(200).json(messages.reverse());
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }
 
@@ -168,7 +166,7 @@ export const GetAllGroupChat = async (req, res) => {
  * Like a group chat message
  * @route PUT /api/chat/group/like/:id
  */
-export const LikeGroupChat = async (req, res) => {
+export const LikeGroupChat = async (req, res, next) => {
     try {
         const groupId = req.params.id;
         const { chatblockId } = req.body;
@@ -190,8 +188,7 @@ export const LikeGroupChat = async (req, res) => {
             , [chatblockId, groupId]);
         return res.status(200).json("liked")
     } catch (e) {
-        console.log(e);
-        return res.status(500).json('server error');
+        next(e);
     }
 }
 
@@ -199,7 +196,7 @@ export const LikeGroupChat = async (req, res) => {
  * Recall (delete) a group chat message
  * @route DELETE /api/chat/group/recall/:id
  */
-export const RecallGroupChat = async (req, res) => {
+export const RecallGroupChat = async (req, res, next) => {
     try {
         const groupId = req.params.id;
         const { userId, chatblockId } = req.body
@@ -226,7 +223,6 @@ export const RecallGroupChat = async (req, res) => {
 
         return res.status(200).json("delete successfully");
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }

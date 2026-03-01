@@ -6,7 +6,7 @@ import { io } from "../../config/socket.js";
  * Admin kick a member from group
  * @route DELETE /api/group/admin/kick/:id
  */
-export const kickMember = async (req, res) => {
+export const kickMember = async (req, res, next) => {
     try {
         const adminId = req.params.id;
         const { memberId, groupId } = req.body;
@@ -27,7 +27,6 @@ export const kickMember = async (req, res) => {
         )
         return res.status(200).json("delete successfully");
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }

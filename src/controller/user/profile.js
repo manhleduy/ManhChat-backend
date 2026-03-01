@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs"
  * Get user information by ID
  * @route GET /api/user/:id
  */
-export const GetUserInfo = async (req, res) => {
+export const GetUserInfo = async (req, res, next) => {
     try {
         const id = req.params.id;
         if (!id) {
@@ -36,8 +36,7 @@ export const GetUserInfo = async (req, res) => {
             })[0]
         )
     } catch (e) {
-        console.log(e)
-        res.status(500).json("server error");
+        next(e);
     }
 }
 
@@ -45,7 +44,7 @@ export const GetUserInfo = async (req, res) => {
  * Update user profile information
  * @route PUT /api/user/profile/:id
  */
-export const UpdateUserInfo = async (req, res) => {
+export const UpdateUserInfo = async (req, res, next) => {
     try {
         const id = req.params.id;
 
@@ -69,8 +68,7 @@ export const UpdateUserInfo = async (req, res) => {
 
         return res.status(200).json("update your information")
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error")
+        next(e);
     }
 }
 
@@ -78,7 +76,7 @@ export const UpdateUserInfo = async (req, res) => {
  * Update user avatar/profile picture
  * @route PUT /api/user/avatar/:id
  */
-export const UpdateUserAvatar = async (req, res) => {
+export const UpdateUserAvatar = async (req, res, next) => {
     try {
         const id = req.params.id;
         const avatar = req.body.avatar;
@@ -94,8 +92,7 @@ export const UpdateUserAvatar = async (req, res) => {
             `, [uploadResponse.secure_url, id])
         return res.status(200).json("update your avatar");
     } catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }
 
@@ -103,7 +100,7 @@ export const UpdateUserAvatar = async (req, res) => {
  * Update user password
  * @route PUT /api/user/password
  */
-export const UpdateUserPassword = async (req, res) => {
+export const UpdateUserPassword = async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
@@ -117,7 +114,6 @@ export const UpdateUserPassword = async (req, res) => {
         return res.status(200).json("update your password");
     }
     catch (e) {
-        console.log(e);
-        return res.status(500).json("server error");
+        next(e);
     }
 }

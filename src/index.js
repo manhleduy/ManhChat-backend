@@ -1,4 +1,7 @@
+
 import express from "express";
+import * as Sentry from "@sentry/node";
+import * as Tracing from "@sentry/tracing";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -18,8 +21,13 @@ app.use(cors({
 }));
 
 
+
 // Setup all routes
 setupRoutes(app);
+
+Sentry.setupExpressErrorHandler(app);
+
+
 
 server.listen(PORT, () => {
     console.log(`server is running on port ${PORT}`);
