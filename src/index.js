@@ -1,7 +1,7 @@
-
-import express from "express";
+import "./instrument.js"
 import * as Sentry from "@sentry/node";
 import * as Tracing from "@sentry/tracing";
+import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";

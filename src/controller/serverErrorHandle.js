@@ -1,4 +1,4 @@
-import { app } from "../config/socket";
+import { app } from "../config/socket.js";
 
 /**
  * Global error handler middleware for catching unhandled errors from route handlers

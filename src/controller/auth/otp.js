@@ -25,9 +25,9 @@ export const SendOTPEmail = async (req, res, next) => {
  */
 export const VerifyOTP = async (req, res, next) => {
     try {
-        const { otp } = req.body;
+        const { otp, email } = req.body;
 
-        const result = await verifyOTP(otp);
+        const result = await verifyOTP(otp, email);
         if (result.status !== 200) {
             return res.status(result.status).json(result.message);
         }
