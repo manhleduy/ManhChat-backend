@@ -208,10 +208,7 @@ export const RecallGroupChat = async (req, res, next) => {
         if (!userId || !chatblockId || !groupId) {
             return res.status(400).json("missing required value");
         }
-        io.to(groupId.toString()).emit("recallGroupMessage", {
-            chatblockId: chatblockId,
-            groupId: groupId
-        });
+        
 
         GroupRealTimeChat.RecallGroupMessage(
             groupId,

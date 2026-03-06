@@ -1,7 +1,7 @@
 import { database } from "../../config/db.js";
 import { getSenderSocketId } from "../../service/socketChatService.js";
 import { io } from "../../config/socket.js";
-
+import RealTimeGroupRequest from "../../service/requestService.js"
 /**
  * Send a group join request
  * @route POST /api/invitation/group/create/:id
@@ -26,18 +26,18 @@ export const SendGroupProposal = async (req, res, next) => {
         const profilePic = data.rows[0].profilepic;
         const isRestricted = data.rows[0].isrestricted;
 
-        const connectedAdmin =await getSenderSocketId(`user:${adminId.toString()}:online`);
-
-        if (connectedAdmin && isRestricted) {
-            io.to(connectedAdmin.toString()).emit("receiveGroupRequest", {
-                content: content,
-                createdAt: createdAt,
-                profilePic: profilePic,
-                name: adminName,
-                groupId: groupId,
-                adminId: adminId,
-                id: parseInt(userId)
-            });
+        if (isRestricted) {
+            await RealTimeGroupRequest.SendGroupRequest(
+                    adminId,
+                    {
+                        content: content,
+                        createdAt: createdAt,
+                        profilePic: profilePic,
+                        name: adminName,
+                        groupId: groupId,
+                        adminId: adminId,
+                        id: parseInt(userId)
+                    })
         }
 
         await database.query(`
@@ -133,15 +133,23 @@ export const DeleteGroupInvitation = async (req, res, next) => {
             const connectedUser =await getSenderSocketId(`user:${memberId.toString()}:online`);
             if (connectedUser) {
                 if (action === "reject") {
-                    io.to(connectedUser).emit("rejectGroupRequest", {
-                        groupId: groupId,
-                        adminId: adminId
-                    })
+
+                    RealTimeGroupRequest.RejectGroupRequest(memberId,
+                        {
+                            groupId: groupId,
+                            adminId: adminId
+                        }
+                    )
+
                 } else if (action === "accept") {
-                    io.to(connectedUser).emit("acceptGroupRequest", {
-                        groupId: groupId,
-                        adminId: adminId
-                    })
+                    
+                    RealTimeGroupRequest.AcceptGroupRequest(memberId, 
+                        {
+                            groupId:groupId,
+                            adminId: adminId
+                        }
+                    )
+
                 }
             }
         }

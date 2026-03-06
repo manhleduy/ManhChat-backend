@@ -1,7 +1,7 @@
 import { database } from "../../config/db.js";
 import { getSenderSocketId } from "../../service/socketChatService.js";
 import { io } from "../../config/socket.js";
-
+import RealTimeFriendRequest from "../../service/requestService.js"
 /**
  * Send a friend request to another user
  * @route POST /api/invitation/friend/create/:id
@@ -27,18 +27,17 @@ export const SendInvitation = async (req, res, next) => {
 
         const receiverId = result.rows[0].id
 
-        if (receiverId) {
-            const connectedUser =await getSenderSocketId(`user:${receiverId.toString()}:online`);
-            if (connectedUser) {
-                io.to(connectedUser).emit("receiveFriendRequest", {
-                    content: content,
-                    createdAt: createdAt,
-                    id: parseInt(senderId),
-                    profilePic: senderInfo.rows[0].profilepic,
-                    name: senderInfo.rows[0].name
-                });
-            }
-        }
+        await RealTimeFriendRequest.SendRequest(
+            receiverId,
+            {
+                content: content,
+                createdAt: createdAt,
+                id: parseInt(senderId),
+                profilePic: senderInfo.rows[0].profilepic,
+                name: senderInfo.rows[0].name
+            })
+
+        
         await database.query(
             `INSERT INTO userconnects (userid, friendid, createdat, isvalid, content)
             VALUES ($1, $2, $3, FALSE, $4)`,
@@ -121,16 +120,21 @@ export const DeleteInvitation = async (req, res, next) => {
             WHERE id=$1
         `, [userId])
         const { name, address, email, profilepic, phonenumber, birthday } = myInfo.rows[0];
-        const connectedUser =await getSenderSocketId(`user:${userId.toString()}:online`)
-        if (connectedUser) {
-            if (action === "reject") {
-                io.to(connectedUser).emit("rejectFriendRequest", {
+        
+        if (action === "reject") {
+                
+            await RealTimeFriendRequest.RejectRequest(
+                userId,
+                {
                     senderId: userId,
                     receiverId: friendId
-                })
-            } else if (action === "accept") {
-                if (myInfo.rows[0]) {
-                    io.to(connectedUser).emit("acceptFriendRequest", {
+                }
+            )              
+        } else if (action === "accept") {
+            if (myInfo.rows[0]) {
+                await RealTimeFriendRequest.AcceptRequest(
+                    userId,
+                    {
                         id: userId,
                         name: name,
                         address: address,
@@ -141,7 +145,7 @@ export const DeleteInvitation = async (req, res, next) => {
                     })
                 }
             }
-        }
+        
 
         await database.query(`
             DELETE 

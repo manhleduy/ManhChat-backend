@@ -7,11 +7,7 @@ export const getSenderSocketId = async (id) => {
 
 
 class RealTimeChat{
-  
-  
-
   //FRIEND CHAT
-  
   SendChatToFriend=async(receiverId, data)=>{
     if(!receiverId){
       console.log("can emit the socket event: missing required value");
@@ -44,7 +40,7 @@ class RealTimeChat{
     return;
   }
 
-  
+  //GROUP CHAT
   SendChatToGroup=(groupId, data)=>{
       if(!groupId){
         console.log("can emit the socket event: missing required value");
