@@ -1,5 +1,5 @@
 import { database } from "../../config/db.js";
-import { getSenderSocketId } from "../redis/onlineUser.js";
+import { getSenderSocketId } from "../../service/socketChatService.js";
 import { io } from "../../config/socket.js";
 
 /**
@@ -155,3 +155,4 @@ export const DeleteInvitation = async (req, res, next) => {
         next(e);
     }
 }
+

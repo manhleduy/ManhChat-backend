@@ -4,6 +4,7 @@ dotenv.config();
 
 
 const redis = createClient({
+  
   socket: {
     host: process.env.REDIS_HOST,   
     port: process.env.REDIS_PORT       
@@ -11,7 +12,7 @@ const redis = createClient({
 });
 
 // 1. Setup Listeners
-redis.on('error', (err) => console.log('Redis: Client Error', err));
+redis.on('error', (err) => console.log(err));
 redis.on('connect', () => console.log('Redis: Attempting to connect...'));
 redis.on('ready', () => console.log('Redis: Connection established and ready!'));
 

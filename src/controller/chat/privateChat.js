@@ -1,9 +1,9 @@
 import { database } from "../../config/db.js";
-import { getSenderSocketId } from "../redis/onlineUser.js";
+import { getSenderSocketId } from "../../service/socketChatService.js";
 import { io } from "../../config/socket.js";
 import cloudinary from "../../config/cloundinary.js";
 import { fetchAndMergeWithStream, handleNewMessage } from "../redis/stream/friendMessage.js";
-
+import FriendRealTimeChat from "../../service/socketChatService.js"
 async function uploadToCloudinary(fileString) {
     try {
         const result = await cloudinary.uploader.upload(fileString, {
@@ -24,7 +24,6 @@ export const CreateChat = async (req, res, next) => {
     const senderId = req.params.id;
     try {
         const { content, file, receiverId } = req.body;
-        const connectedUses =await getSenderSocketId(`user:${receiverId.toString()}:online`);
         if (!content || !senderId || !receiverId) {
             return res.status(400).json("missing content")
         }
@@ -45,8 +44,7 @@ export const CreateChat = async (req, res, next) => {
             const messageId = dbResult.rows?.[0]?.id;
 
             // Emit to connected user in real-time
-            if (connectedUses) {
-                io.to(connectedUses).emit("receiveMessage", {
+            await FriendRealTimeChat.SendChatToFriend({
                     id: messageId,
                     content: content,
                     file: uploadResponse,
@@ -54,8 +52,8 @@ export const CreateChat = async (req, res, next) => {
                     senderId: parseInt(senderId),
                     receiverId: parseInt(receiverId),
                     likenum: 0
-                });
-            }
+                },receiverId);
+            
 
             // Cache to Redis stream asynchronously (non-blocking)
             if (messageId) {
@@ -79,8 +77,8 @@ export const CreateChat = async (req, res, next) => {
         const messageId = dbResult.rows?.[0]?.id;
 
         // Emit to connected user in real-time
-        if (connectedUses) {
-            io.to(connectedUses).emit("receiveMessage", {
+
+        await FriendRealTimeChat.SendChatToFriend(receiverId,{
                 id: messageId,
                 content: content,
                 file: safeFile,
@@ -89,7 +87,7 @@ export const CreateChat = async (req, res, next) => {
                 receiverId: parseInt(receiverId),
                 likenum: 0
             });
-        }
+        
 
         // Cache to Redis stream asynchronously (non-blocking)
         if (messageId) {
@@ -113,7 +111,16 @@ export const GetAllChat = async (req, res, next) => {
         const { receiverId, limit = 20, offset = 0 } = req.body;
         //redis cache
         
-        const result1= await fetchAndMergeWithStream(senderId, receiverId, limit, offset)
+        //const result1= await fetchAndMergeWithStream(senderId, receiverId, limit, offset)
+
+         const result1 = await database.query(`
+            SELECT *
+            FROM chatblocks
+            WHERE (senderid=$1 AND receiverid=$2) 
+            OR (senderid=$3 AND receiverid=$4) 
+            ORDER BY createdat
+            LIMIT $5 OFFSET $6
+        `, [senderId, receiverId, receiverId, senderId, limit, offset ]);
 
         const result2 = await database.query(`
             SELECT name, profilepic
@@ -122,15 +129,15 @@ export const GetAllChat = async (req, res, next) => {
             `, [senderId]
         )
 
-        const messages = result1.map((item) => {
+        const messages = result1.rows.map((item) => {
             return {
-                id: item.id,
+                id: parseInt(item.id),
                 content: item.content,
                 file: item.file,
-                likeNum: item.likenum,
+                likeNum: parseInt(item.likenum),
                 createdAt: item.createdat,
-                senderId: item.senderid,
-                receiverId: item.receiverid,
+                senderId: parseInt(item.senderid),
+                receiverId: parseInt(item.receiverid),
                 isRead: item.isread,
                 name: result2.rows[0].name,
                 profilePic: result2.rows[0].profilepic || "",
@@ -151,6 +158,7 @@ export const GetAllChat = async (req, res, next) => {
 export const LikeChat = async (req, res, next) => {
     try {
         const chatblockId = req.params.id;
+        console.log(chatblockId);
         if (!chatblockId) {
             return res.status(400).json("missing the chat block which you want to send a like");
         }
@@ -160,14 +168,16 @@ export const LikeChat = async (req, res, next) => {
             FROM chatblocks
             WHERE id=$1
             `, [chatblockId])
-        const connectedUses =await getSenderSocketId(`user:${senderInfo.rows[0].senderid.toString()}:online`);
-        if (connectedUses) {
-            io.to(connectedUses).emit("likeMessage", {
+
+        await FriendRealTimeChat.LikeFriendMessage(
+            senderInfo.rows[0].receiverid,
+            {
                 chatblockId: chatblockId,
                 senderId: senderInfo.rows[0].senderid,
                 receiverId: senderInfo.rows[0].receiverid
-            });
-        }
+            }
+        )
+
 
         await database.query(`
             UPDATE chatblocks 
@@ -197,14 +207,16 @@ export const RecallChat = async (req, res, next) => {
             FROM chatblocks
             WHERE id=$1 AND senderid=$2
             `, [chatblockId, userId])
+        
         const receiverId = result.rows[0].receiverid;
-        const connectedUses =await getSenderSocketId(`user:${receiverId.toString()}:online`);
-        if (connectedUses) {
-            io.to(connectedUses).emit("recallMessage", {
+        
+        await FriendRealTimeChat.RecallMessage(
+            receiverId,
+            {
                 chatblockId: chatblockId,
                 senderId: userId
-            });
-        }
+            }
+        )        
 
         await database.query(`
             DELETE FROM chatblocks

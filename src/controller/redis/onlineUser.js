@@ -3,9 +3,6 @@ import redis from "../../config/redis.js";
 const ONLINE_TTL = 60;
 
 // Get socketId
-export const getSenderSocketId = async (id) => {
-  return await redis.get(`user:${id}:online`);
-};
 
 // Add or update online user
 export const addOnlineUser = async (id, socketId) => {

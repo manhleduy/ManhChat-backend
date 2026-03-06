@@ -1,9 +1,9 @@
 import { database } from "../../config/db.js";
-import { getSenderSocketId } from "../redis/onlineUser.js";
+import { getSenderSocketId } from "../../service/socketChatService.js";
 import { io } from "../../config/socket.js";
 import cloudinary from "../../config/cloundinary.js";
 import { handleNewGroupMessage, fetchAndMergeWithGroupStream } from "../redis/stream/groupMessage.js";
-
+import GroupRealTimeChat from "../../service/socketChatService.js"
 async function uploadToCloudinary(fileString) {
     try {
         const result = await cloudinary.uploader.upload(fileString, {
@@ -30,15 +30,16 @@ export const CreateGroupChat = async (req, res, next) => {
         if (file) {
             const uploadResponse = await uploadToCloudinary(file);
             if (uploadResponse === "Fail") return res.status(500).json("server error");
-            if (groupId) {
-                io.to(groupId.toString()).emit("receiveGroupMessage", {
-                    content: content,
-                    file: uploadResponse || "",
-                    createdAt: createdAt,
-                    senderId: senderId,
-                    groupId: parseInt(groupId)
-                });
-            }
+
+            GroupRealTimeChat.SendChatToGroup(groupId, {
+                content: content,
+                file: uploadResponse || "",
+                createdAt: createdAt,
+                senderId: senderId,
+                groupId: parseInt(groupId),
+                likeNum: 0
+            });
+            
             const insertResult = await database.query(`
             INSERT INTO 
             groupchatblocks(groupid, content, file, senderid, createdat, likenum)
@@ -66,15 +67,17 @@ export const CreateGroupChat = async (req, res, next) => {
                 likeNum:0
             });
         }
-        if (groupId) {
-            io.to(groupId.toString()).emit("receiveGroupMessage", {
-                content: content,
-                file: file || "",
-                createdAt: createdAt,
-                senderId: senderId,
-                groupId: parseInt(groupId)
+
+        GroupRealTimeChat.SendChatToGroup(groupId, {
+            content: content,
+            file: file || "",
+            createdAt: createdAt,
+            senderId: senderId,
+            groupId: parseInt(groupId),
+            likeNum: 0
             });
-        }
+
+        
 
         if (!groupId || !content || !senderId) {
             return res.status(400).json("missing required value")
@@ -122,11 +125,11 @@ export const GetAllGroupChat = async (req, res, next) => {
         }
 
         // first attempt to merge with stream cache; ensures output shape remains same
-        let merged = await fetchAndMergeWithGroupStream(groupId, limit, offset);
+        //let merged = await fetchAndMergeWithGroupStream(groupId, limit, offset);
         let rows = [];
-        if (merged && merged.length > 0) {
+        /*if (merged && merged.length > 0) {
             rows = merged;
-        } else {
+        } else {*/
             // fallback to DB query if stream empty or error
             const result = await database.query(`
                 SELECT a.id, a.content, a.file, a.createdat,
@@ -142,16 +145,16 @@ export const GetAllGroupChat = async (req, res, next) => {
                 [groupId, limit, offset]
             );
             rows = result.rows;
-        }
+        /*}*/
         const messages = rows.map((item) => {
             return {
                 id: item.id,
                 content: item.content,
                 file: item.file,
                 createdAt: item.createdat,
-                senderId: item.senderid,
+                senderId: parseInt(item.senderid),
                 likeNum: item.likenum,
-                groupId: parseInt(groupId),
+                groupId: groupId,
                 name: item.name,
                 profilePic: item.profilepic,
             }
@@ -174,12 +177,13 @@ export const LikeGroupChat = async (req, res, next) => {
             return res.status(400).json("missing the required value");
         }
 
-        if (groupId) {
-            io.to(groupId.toString()).emit("likeGroupMessage", {
+        GroupRealTimeChat.LikeGroupMessage(
+            groupId,
+            {
                 chatblockId: chatblockId,
                 groupId: groupId
-            });
-        }
+            }
+        )
 
         await database.query(`
             UPDATE groupchatblocks
@@ -209,12 +213,13 @@ export const RecallGroupChat = async (req, res, next) => {
             groupId: groupId
         });
 
-        if (groupId) {
-            io.to(groupId.toString()).emit("recallGroupMessage", {
+        GroupRealTimeChat.RecallGroupMessage(
+            groupId,
+            {
                 chatblockId: chatblockId,
                 groupId: groupId
-            });
-        }
+            }
+        )
 
         await database.query(`
             DELETE FROM groupchatblocks

@@ -18,7 +18,9 @@ export const streamPath = (senderId, receiverId) => {
     }
     return ""; // Invalid: sender and receiver are the same
 }
-
+const getStreamId= async(senderId, receiverId, messageId)=>{
+    
+}
 /**
  * Push a message to Redis Stream
  * @param {number} senderId - ID of the sender
@@ -180,15 +182,15 @@ export const fetchAndMergeWithStream = async (senderId, receiverId, limit = 20, 
         }
 
         const dbMessages = queryResult.rows;
-        console.log([...streamMessages, ...dbMessages])
-
+        
         // Merge stream and DB messages
         if (offset === 0 && streamLen > 0) {
             // Send stream messages first (most recent), then DB messages
             return [...streamMessages, ...dbMessages];
         }
-
+        
         return dbMessages;
+        
     } catch (error) {
         console.error("Error fetching and merging stream:", error.message);
         return [];

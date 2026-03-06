@@ -1,5 +1,5 @@
 import { database } from "../../config/db.js";
-import { getSenderSocketId } from "../redis/onlineUser.js";
+import { getSenderSocketId } from "../../service/socketChatService.js";
 import { getCachedFriendList, setCachedFriendList, invalidateFriendListCache } from "../redis/userFriend.js";
 import { io } from "../../config/socket.js";
 

@@ -122,9 +122,17 @@ export const fetchAndMergeWithGroupStream = async (groupId, limit = 20, offset =
             LIMIT $2 OFFSET $3
         `, [groupId, limit, offset + streamLen]);
         const dbMessages = queryResult.rows || [];
-        if (offset === 0 && streamLen > 0) {
-            return [...dbMessages, ...streamMessages];
+
+        // if the DB returned nothing we can just send whatever is in the stream
+        if (dbMessages.length === 0) {
+            return streamMessages;
         }
+
+        // for the initial page we want the newest items from the stream first
+        if (offset === 0 && streamLen > 0) {
+            return [...streamMessages, ...dbMessages];
+        }
+
         return dbMessages;
     } catch (error) {
         console.error("Error fetching/merging group stream:", error.message);
