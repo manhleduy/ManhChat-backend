@@ -1,7 +1,8 @@
 import { database } from "../../config/db.js";
-import { getSenderSocketId } from "../../service/socketChatService.js";
 import { io } from "../../config/socket.js";
 import RealTimeGroupRequest from "../../service/requestService.js"
+import RealTimeGroupMember from "../../service/socketGroupMember.js"
+
 /**
  * Send a group join request
  * @route POST /api/invitation/group/create/:id
@@ -129,30 +130,7 @@ export const DeleteGroupInvitation = async (req, res, next) => {
             return res.status(400).json("missing required value")
         }
 
-        if (memberId) {
-            const connectedUser =await getSenderSocketId(`user:${memberId.toString()}:online`);
-            if (connectedUser) {
-                if (action === "reject") {
-
-                    RealTimeGroupRequest.RejectGroupRequest(memberId,
-                        {
-                            groupId: groupId,
-                            adminId: adminId
-                        }
-                    )
-
-                } else if (action === "accept") {
-                    
-                    RealTimeGroupRequest.AcceptGroupRequest(memberId, 
-                        {
-                            groupId:groupId,
-                            adminId: adminId
-                        }
-                    )
-
-                }
-            }
-        }
+        
 
         await database.query(`
             DELETE 
@@ -161,6 +139,27 @@ export const DeleteGroupInvitation = async (req, res, next) => {
             AND isvalid=FALSE
             `, [memberId, groupId, adminId]
         )
+
+        if (memberId) {
+        
+                if (action === "reject") {
+                    await RealTimeGroupRequest.RejectGroupRequest(memberId,
+                        {
+                            groupId: groupId,
+                            adminId: adminId
+                        }
+                    )
+                } else if(action === "accept") {
+                    await RealTimeGroupRequest.AcceptGroupRequest(memberId, 
+                        {
+                            groupId:groupId,
+                            adminId: adminId
+                        }
+                    )
+                    
+
+            }
+        }
         return res.status(200).json("delete successfully")
     } catch (e) {
         next(e);

@@ -1,5 +1,4 @@
 import { database } from "../../config/db.js";
-import { getSenderSocketId } from "../../service/socketChatService.js";
 import { io } from "../../config/socket.js";
 import cloudinary from "../../config/cloundinary.js";
 import { handleNewGroupMessage, fetchAndMergeWithGroupStream } from "../redis/stream/groupMessage.js";
@@ -180,8 +179,8 @@ export const LikeGroupChat = async (req, res, next) => {
         GroupRealTimeChat.LikeGroupMessage(
             groupId,
             {
-                chatblockId: chatblockId,
-                groupId: groupId
+                chatblockId: parseInt(chatblockId),
+                groupId: parseInt(groupId)
             }
         )
 

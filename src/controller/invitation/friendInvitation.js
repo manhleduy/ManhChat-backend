@@ -1,7 +1,7 @@
 import { database } from "../../config/db.js";
-import { getSenderSocketId } from "../../service/socketChatService.js";
 import { io } from "../../config/socket.js";
 import RealTimeFriendRequest from "../../service/requestService.js"
+import RealTimeFriend from "../../service/socketFriendService.js"
 /**
  * Send a friend request to another user
  * @route POST /api/invitation/friend/create/:id
@@ -132,8 +132,12 @@ export const DeleteInvitation = async (req, res, next) => {
             )              
         } else if (action === "accept") {
             if (myInfo.rows[0]) {
-                await RealTimeFriendRequest.AcceptRequest(
-                    userId,
+                
+                await RealTimeFriendRequest.AcceptRequest(userId,{
+                        name: name,
+                    })
+
+                await RealTimeFriend.NewFriend(userId,
                     {
                         id: userId,
                         name: name,
@@ -144,6 +148,7 @@ export const DeleteInvitation = async (req, res, next) => {
                         birthday: birthday,
                     })
                 }
+                
             }
         
 

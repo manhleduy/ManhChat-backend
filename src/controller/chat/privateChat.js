@@ -1,5 +1,4 @@
 import { database } from "../../config/db.js";
-import { getSenderSocketId } from "../../service/socketChatService.js";
 import { io } from "../../config/socket.js";
 import cloudinary from "../../config/cloundinary.js";
 import { fetchAndMergeWithStream, handleNewMessage } from "../redis/stream/friendMessage.js";
@@ -158,7 +157,7 @@ export const GetAllChat = async (req, res, next) => {
 export const LikeChat = async (req, res, next) => {
     try {
         const chatblockId = req.params.id;
-        console.log(chatblockId);
+    
         if (!chatblockId) {
             return res.status(400).json("missing the chat block which you want to send a like");
         }
@@ -168,16 +167,15 @@ export const LikeChat = async (req, res, next) => {
             FROM chatblocks
             WHERE id=$1
             `, [chatblockId])
-
+            
         await FriendRealTimeChat.LikeFriendMessage(
-            senderInfo.rows[0].receiverid,
+            senderInfo.rows[0].senderid,
             {
                 chatblockId: chatblockId,
                 senderId: senderInfo.rows[0].senderid,
                 receiverId: senderInfo.rows[0].receiverid
             }
         )
-
 
         await database.query(`
             UPDATE chatblocks 

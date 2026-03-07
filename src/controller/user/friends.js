@@ -1,7 +1,7 @@
 import { database } from "../../config/db.js";
-import { getSenderSocketId } from "../../service/socketChatService.js";
 import { getCachedFriendList, setCachedFriendList, invalidateFriendListCache } from "../redis/userFriend.js";
 import { io } from "../../config/socket.js";
+import RealTimeFriend from "../../service/socketFriendService.js"
 
 /**
  * Get all friends of a user
@@ -117,12 +117,11 @@ export const DeleteFriend = async (req, res, next) => {
     try {
         const userId = req.params.id;
         const { friendId } = req.body;
-        const friendSocketId =await getSenderSocketId(`user:${friendId.toString()}:online`);
-        if (friendSocketId) {
-            io.to(friendSocketId).emit("unfriend", {
-                userId: parseInt(userId),
-            });
-        }
+        
+        RealTimeFriend.UnFriend(friendId,{
+            userId: userId,
+            friendId: friendId
+        })
         await database.query(`
             DELETE FROM userconnects 
             WHERE userid=$1 AND friendid=$2

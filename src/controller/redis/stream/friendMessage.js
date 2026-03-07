@@ -18,9 +18,7 @@ export const streamPath = (senderId, receiverId) => {
     }
     return ""; // Invalid: sender and receiver are the same
 }
-const getStreamId= async(senderId, receiverId, messageId)=>{
-    
-}
+
 /**
  * Push a message to Redis Stream
  * @param {number} senderId - ID of the sender
@@ -54,6 +52,7 @@ export const pushToStream = async (senderId, receiverId, messageData) => {
         return null;
     }
 }
+
 
 /**
  * Remove a message from Redis Stream

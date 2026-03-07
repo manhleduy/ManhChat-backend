@@ -1,9 +1,6 @@
 import {io} from "../config/socket.js"
 import redis from "../config/redis.js";
-
-export const getSenderSocketId = async (id) => {
-    return await redis.get(`user:${id}:online`);
-  };
+import { getReceiverSocketId } from "./socketReceiverConfig.js";
 
 
 class RealTimeChat{
@@ -12,7 +9,7 @@ class RealTimeChat{
     if(!receiverId){
       console.log("can emit the socket event: missing required value");
     }
-    const friendSocketId= await getSenderSocketId(receiverId.toString());
+    const friendSocketId= await getReceiverSocketId(receiverId.toString());
     if(friendSocketId){
       io.to(friendSocketId).emit("receiveMessage", data);
     }
@@ -23,7 +20,8 @@ class RealTimeChat{
     if(!receiverId){
       console.log("can emit the like event: missing receiverId");
     }
-    const friendSocketId= await getSenderSocketId(receiverId.toString());
+    const friendSocketId= await getReceiverSocketId(receiverId.toString());
+  
     if(friendSocketId){
       io.to(friendSocketId).emit("likeMessage", data);
     }
@@ -33,7 +31,7 @@ class RealTimeChat{
     if(!receiverId){
       console.log("can emit the recall event: missing receiverId");
     }
-    const friendSocketId= await getSenderSocketId(receiverId.toString());
+    const friendSocketId= await getReceiverSocketId(receiverId.toString());
     if(friendSocketId){
       io.to(friendSocketId).emit("recallMessage", data);
     }

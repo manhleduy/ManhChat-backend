@@ -1,12 +1,13 @@
-import { getSenderSocketId } from "./socketChatService.js"
+import { getReceiverSocketId } from "./socketReceiverConfig.js"
 import { io } from "../config/socket.js";
+
 class RealTimeRequest{
     SendRequest=async(receiverId, data)=>{
         if(!receiverId){
           console.log("can emit the socket event: missing required value");
           return;
         }
-        const friendSocketId= await getSenderSocketId(receiverId.toString());
+        const friendSocketId= await getReceiverSocketId(receiverId.toString());
         if(friendSocketId){
           io.to(friendSocketId).emit("receiveFriendRequest", data);
         }
@@ -18,20 +19,20 @@ class RealTimeRequest{
           console.log("can emit the reject event: missing receiverId");
           return;
         }
-        const friendSocketId= await getSenderSocketId(receiverId.toString());
+        const friendSocketId= await getReceiverSocketId(receiverId.toString());
         if(friendSocketId){
           io.to(friendSocketId).emit("rejectFriendRequest", data);
         }
         return;
     }
-    AcceptRequest= async(receiverId, data)=>{
+    AcceptRequest= async(receiverId)=>{
         if(!receiverId){
           console.log("can emit the accept event: missing receiverId");
           return;
         }
-        const friendSocketId= await getSenderSocketId(receiverId.toString());
+        const friendSocketId= await getReceiverSocketId(receiverId.toString());
         if(friendSocketId){
-          io.to(friendSocketId).emit("acceptFriendRequest", data);
+          io.to(friendSocketId).emit("acceptFriendRequest");
         }
         return;
     }
@@ -41,7 +42,7 @@ class RealTimeRequest{
             console.log("can emit the socket event: missing required value");
             return;
         }
-        const adminSocketId=await  getSenderSocketId(adminId.toString());
+        const adminSocketId=await  getReceiverSocketId(adminId.toString());
         if(adminSocketId){
           io.to(adminSocketId).emit("receiveGroupRequest", data);
         }
@@ -52,7 +53,7 @@ class RealTimeRequest{
             console.log("can emit the reject event: missing memeberId");
             return;
         }
-        const memeberSocketId= await getSenderSocketId(memeberId.toString());
+        const memeberSocketId= await getReceiverSocketId(memeberId.toString());
         if(memeberSocketId){
             io.to(memeberSocketId).emit("rejectGroupRequest", data);
         }
@@ -62,7 +63,7 @@ class RealTimeRequest{
             console.log("can emit the accept event: missing memberId");
             return;
         }
-        const memeberSocketId= await getSenderSocketId(memberId.toString());
+        const memeberSocketId= await getReceiverSocketId(memberId.toString());
         if(memeberSocketId){
             io.to(memeberSocketId).emit("acceptGroupRequest", data);
         }

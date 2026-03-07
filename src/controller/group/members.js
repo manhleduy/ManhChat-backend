@@ -3,6 +3,7 @@ import { getCachedGroupList, setCachedGroupList, invalidateGroupListCache } from
 import { invalidateMemberGroupMembersForUsers } from "../redis/group/member.js";
 import { invalidateAdminGroupMembersCache } from "../redis/group/admin.js";
 import { io } from "../../config/socket.js";
+import RealTimeGroupMember from "../../service/socketGroupMember.js"
 
 /**
  * Add a member to a group
@@ -28,7 +29,7 @@ export const createGroupConnect = async (req, res, next) => {
             WHERE id=$1
             `, [memberId])
 
-        io.to(groupId.toString()).emit("newUserJoined", {
+        RealTimeGroupMember.JoinGroup(groupId,{
             member: {
                 id: memberId,
                 name: user.rows[0].name,
@@ -37,7 +38,6 @@ export const createGroupConnect = async (req, res, next) => {
             adminId: adminId,
             groupId: groupId
         })
-
         await database.query(`
             INSERT INTO 
             groupconnects (groupid, adminid, memberid, createdat, isvalid)
@@ -66,12 +66,12 @@ export const deleteGroupConnect = async (req, res, next) => {
         if (!groupId || !memberId) {
             return res.status(400).json("missing required value");
         }
-        console.log(groupId, memberId);
-
-        io.to(groupId.toString()).emit("userLeaveGroup", {
+        
+        RealTimeGroupMember.LeaveGroup(groupId,{
             memberId: memberId,
             groupId: groupId
         })
+        
 
         // Get admin ID before deleting
         const adminQuery = await database.query(`
