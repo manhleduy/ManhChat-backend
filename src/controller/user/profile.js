@@ -30,7 +30,7 @@ export const GetUserInfo = async (req, res, next) => {
                     email: item.email,
                     profilePic: item.profilePic,
                     phonenumber: item.phonenumber,
-                    birthday: item.birthday,
+                    birthday: new Date(item.birthday).toISOString().split('T')[0],
                     createdAt: item.createdat
                 }
             })[0]

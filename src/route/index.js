@@ -19,9 +19,9 @@ const setupRoutes = (app) => {
     
     app.use('/api/user', userRoutes, handleServerErrors);
 
-    app.use('/api/chat',verifyJWT,chatRoutes, handleServerErrors);
+    app.use('/api/chat',chatRoutes, handleServerErrors);
 
-    app.use('/api/group',verifyJWT, groupRoutes, handleServerErrors);
+    app.use('/api/group', groupRoutes, handleServerErrors);
 
     // Invitation-related routes
     app.use('/api/invitation', invitationRoutes, handleServerErrors);

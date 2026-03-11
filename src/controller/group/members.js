@@ -1,8 +1,6 @@
 import { database } from "../../config/db.js";
-import { getCachedGroupList, setCachedGroupList, invalidateGroupListCache } from "../redis/userGroup.js";
 import { invalidateMemberGroupMembersForUsers } from "../redis/group/member.js";
 import { invalidateAdminGroupMembersCache } from "../redis/group/admin.js";
-import { io } from "../../config/socket.js";
 import RealTimeGroupMember from "../../service/socketGroupMember.js"
 
 /**
@@ -67,9 +65,19 @@ export const deleteGroupConnect = async (req, res, next) => {
             return res.status(400).json("missing required value");
         }
         
+        // Get member name for announcement
+        const user = await database.query(`
+            SELECT name
+            FROM users
+            WHERE id=$1
+        `, [memberId]);
+
+        const memberName = user.rows[0]?.name || "A member";
+
         RealTimeGroupMember.LeaveGroup(groupId,{
             memberId: memberId,
-            groupId: groupId
+            groupId: groupId,
+            memberName: memberName
         })
         
 
@@ -83,7 +91,7 @@ export const deleteGroupConnect = async (req, res, next) => {
 
         await database.query(`
             DELETE FROM groupconnects
-            WHERE groupid=$1 AND memberid=$2
+            WHERE groupid=$1 AND memberid=$2 AND isvalid= TRUE
             `, [groupId, memberId])
         
         // Invalidate caches
@@ -114,16 +122,10 @@ export const getAllGroup = async (req, res, next) => {
         }
 
         // Try to get cached group list first
-        const cachedGroupList = await getCachedGroupList(userId);
-        if (cachedGroupList) {
-            return res.status(200).json({
-                message: "successfully (cached)",
-                groupList: cachedGroupList
-            });
-        }
+        
 
         const result = await database.query(`
-            SELECT DISTINCT ON (groupselected.id) groupselected.id,
+            SELECT groupselected.id,
             groupselected.detail, groupselected.adminid, 
             groupselected.groupname, groupselected.createdat,
             groupselected.isrestricted, groupchats.content AS lastmessage
@@ -131,16 +133,15 @@ export const getAllGroup = async (req, res, next) => {
                 SELECT b.id, b.detail, b.adminid, b.groupname, b.createdat, b.isrestricted
                 FROM groupconnects a
                 RIGHT JOIN groups b
-                ON a.groupid= b.id 
-                WHERE a.memberid= $1
+                ON a.groupid = b.id 
+                WHERE a.memberid = $1
             ) AS groupselected
             LEFT JOIN (
                 SELECT content, groupid
                 FROM groupchatblocks
                 ORDER BY createdat DESC
             ) AS groupchats
-            ON groupselected.id= groupchats.groupid
-
+            ON groupselected.id = groupchats.groupid
             `, [userId]
         )
         const groupList = result.rows.map((item) => {
@@ -156,7 +157,7 @@ export const getAllGroup = async (req, res, next) => {
         })
 
         // Cache the group list
-        await setCachedGroupList(userId, groupList);
+    
 
         return res.status(200).json({
             message: "successfully",

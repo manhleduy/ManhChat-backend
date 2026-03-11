@@ -119,8 +119,8 @@ export const DeleteFriend = async (req, res, next) => {
         const { friendId } = req.body;
         
         RealTimeFriend.UnFriend(friendId,{
-            userId: userId,
-            friendId: friendId
+            userId: parseInt(userId),
+            friendId: parseInt(friendId)
         })
         await database.query(`
             DELETE FROM userconnects 

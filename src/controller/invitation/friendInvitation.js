@@ -118,11 +118,17 @@ export const DeleteInvitation = async (req, res, next) => {
             SELECT profilepic, name, address, email, phonenumber, birthday
             FROM users
             WHERE id=$1
-        `, [userId])
+        `, [friendId])
         const { name, address, email, profilepic, phonenumber, birthday } = myInfo.rows[0];
-        
+         await database.query(`
+            DELETE 
+            FROM userconnects
+            WHERE userid=$1 AND friendid=$2
+            AND isvalid=FALSE
+            `, [userId, friendId])
+
         if (action === "reject") {
-                
+            
             await RealTimeFriendRequest.RejectRequest(
                 userId,
                 {
@@ -130,7 +136,7 @@ export const DeleteInvitation = async (req, res, next) => {
                     receiverId: friendId
                 }
             )              
-        } else if (action === "accept") {
+        } else if(action === "accept") {
             if (myInfo.rows[0]) {
                 
                 await RealTimeFriendRequest.AcceptRequest(userId,{
@@ -146,18 +152,14 @@ export const DeleteInvitation = async (req, res, next) => {
                         profilePic: profilepic,
                         phonenumber: phonenumber,
                         birthday: birthday,
+                        createdAt: new Date()
                     })
                 }
                 
-            }
+        }
         
 
-        await database.query(`
-            DELETE 
-            FROM userconnects
-            WHERE userid=$1 AND friendid=$2
-            AND isvalid=FALSE
-            `, [userId, friendId])
+       
 
         return res.status(200).json("delete successfully")
     } catch (e) {

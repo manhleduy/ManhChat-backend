@@ -1,5 +1,7 @@
 import { database } from "../../config/db.js";
 import { invalidateGroupListCache } from "../redis/userGroup.js";
+import { io } from "../../config/socket.js";
+import { getReceiverSocketId } from "../../service/socketReceiverConfig.js";
 
 /**
  * Create a new group
@@ -159,6 +161,17 @@ export const deleteGroup = async (req, res, next) => {
         const memberIds = members.rows.map(row => row.memberid);
         if (memberIds.length > 0) {
             await invalidateGroupListCache(memberIds);
+            
+            // Emit group list update to all members
+            for (const memberId of memberIds) {
+                const memberSocketId = await getReceiverSocketId(memberId.toString());
+                if (memberSocketId) {
+                    io.to(memberSocketId).emit("groupListUpdate");
+                }
+            }
+            
+            // Emit group deleted to group room
+            io.to(groupId.toString()).emit("groupDeleted", { groupId });
         }
         
         return res.status(200).json("delete successfully");

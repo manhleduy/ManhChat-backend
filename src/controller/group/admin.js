@@ -10,10 +10,20 @@ export const kickMember = async (req, res, next) => {
         const adminId = req.params.id;
         const { memberId, groupId } = req.body;
 
+        // Get member name for announcement
+        const user = await database.query(`
+            SELECT name
+            FROM users
+            WHERE id=$1
+        `, [memberId]);
+
+        const memberName = user.rows[0]?.name || "A member";
+
         await RealTimeGroupManage.KickMember(memberId, {
             memberId: memberId,
             adminId: adminId,
-            groupId: groupId
+            groupId: groupId,
+            memberName: memberName
         })
 
        

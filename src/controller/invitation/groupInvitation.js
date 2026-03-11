@@ -2,6 +2,10 @@ import { database } from "../../config/db.js";
 import { io } from "../../config/socket.js";
 import RealTimeGroupRequest from "../../service/requestService.js"
 import RealTimeGroupMember from "../../service/socketGroupMember.js"
+import { invalidateGroupListCache } from "../redis/userGroup.js";
+import { invalidateAdminGroupMembersCache } from "../redis/group/admin.js";
+import { invalidateMemberGroupMembersForUsers } from "../redis/group/member.js";
+import { getReceiverSocketId } from "../../service/socketReceiverConfig.js";
 
 /**
  * Send a group join request
@@ -156,9 +160,50 @@ export const DeleteGroupInvitation = async (req, res, next) => {
                             adminId: adminId
                         }
                     )
-                    
+                    // Add member to group
+                    const createdAt = new Date();
+                    const user = await database.query(`
+                        SELECT profilepic, name
+                        FROM users
+                        WHERE id=$1
+                    `, [memberId]);
 
-            }
+                    await database.query(`
+                        INSERT INTO 
+                        groupconnects (groupid, adminid, memberid, createdat, isvalid)
+                        VALUES ($1,$2, $3, $4, TRUE)
+                        `, [groupId, adminId, memberId, createdAt]);
+
+                    // Emit join to group room
+                    RealTimeGroupMember.JoinGroup(groupId,{
+                        member: {
+                            id: memberId,
+                            name: user.rows[0].name,
+                            profilePic: user.rows[0].profilepic
+                        },
+                        adminId: adminId,
+                        groupId: groupId
+                    });
+
+                    // Emit group list update to member
+                    const memberSocketId = await getReceiverSocketId(memberId.toString());
+                    if (memberSocketId) {
+                        io.to(memberSocketId).emit("groupListUpdate");
+                    }
+
+                    // Invalidate caches
+                    await invalidateGroupListCache(memberId); // New member's group list
+                    await invalidateAdminGroupMembersCache(adminId); // Admin's member cache
+                    await invalidateMemberGroupMembersForUsers(memberId); // New member's member cache
+                }else if(action==="withdraw"){
+                    await RealTimeGroupMember.WithdrawGroupRequest(memberId,
+                        {
+                            memberId: memberId,
+                            groupId: groupId,
+                            adminId: adminId
+                        }
+                    )
+                }
         }
         return res.status(200).json("delete successfully")
     } catch (e) {

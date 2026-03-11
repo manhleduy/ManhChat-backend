@@ -78,14 +78,15 @@ export const Login = async (req, res, next) => {
             WHERE email=$1`,
             [email]
         )
-        const { id, name, profilepic } = data.rows[0];
-        const currentUser = {
-            id: id,
-            name: name,
-            email: email,
-            profilePic: profilepic
-        }
+        
         if (data.rows[0]) {
+            const { id, name, profilepic } = data.rows[0];
+            const currentUser = {
+                id: id,
+                name: name,
+                email: email,
+                profilePic: profilepic
+            }
             const checkPassword = await bcrypt.compareSync(password, rows[0].password)
             if (checkPassword) {
                 const secretToken = jwt.sign(

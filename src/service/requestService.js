@@ -36,6 +36,17 @@ class RealTimeRequest{
         }
         return;
     }
+    WithdrawRequest= async(receiverId, data)=>{
+        if(!receiverId){
+          console.log("can emit the withdraw event: missing receiverId");
+          return;
+        }
+        const friendSocketId= await getReceiverSocketId(data.senderId.toString());
+        if(friendSocketId){
+          io.to(friendSocketId).emit("withdrawFriendRequest", data);
+        }
+        return;
+    }
 
     SendGroupRequest= async(adminId, data)=>{
         if(!adminId){
@@ -63,9 +74,20 @@ class RealTimeRequest{
             console.log("can emit the accept event: missing memberId");
             return;
         }
-        const memeberSocketId= await getReceiverSocketId(memberId.toString());
-        if(memeberSocketId){
-            io.to(memeberSocketId).emit("acceptGroupRequest", data);
+        const memberSocketId= await getReceiverSocketId(memberId.toString());
+        if(memberSocketId){
+            io.to(memberSocketId).emit("acceptGroupRequest", data);
+        }
+        return;
+    }
+    WithDrawGroupRequest= async(memberId, data)=>{
+        if(!memberId){
+            console.log("can emit the withdraw event: missing memberId");
+            return;
+        }
+        const memberSocketId= await getReceiverSocketId(data.adminId.toString());
+        if(memberSocketId){
+            io.to(memberSocketId).emit("withdrawGroupRequest", data);
         }
         return;
     }
