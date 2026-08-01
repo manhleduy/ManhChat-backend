@@ -5,13 +5,16 @@ import { getReceiverSocketId } from "./socketReceiverConfig.js";
 
 class RealTimeChat{
   //FRIEND CHAT
-  SendChatToFriend=async(receiverId, data)=>{
+  SendChatToFriend=async(receiverId, senderId, data)=>{
     if(!receiverId){
       console.log("can emit the socket event: missing required value");
     }
     const friendSocketId= await getReceiverSocketId(receiverId.toString());
+    const mySocketId = await getReceiverSocketId(senderId.toString());
     if(friendSocketId){
       io.to(friendSocketId).emit("receiveMessage", data);
+      io.to(mySocketId).emit("receiveMessage", data)
+      
     }
     return;
 

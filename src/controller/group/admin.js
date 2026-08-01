@@ -27,7 +27,7 @@ export const kickMember = async (req, res, next) => {
         })
 
        
-
+        console.log(adminId, memberId, groupId)
         await database.query(
             `DELETE FROM groupconnects
             WHERE adminid=$1 AND memberid= $2 AND groupid=$3

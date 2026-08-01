@@ -125,10 +125,14 @@ export const getAllGroup = async (req, res, next) => {
         
 
         const result = await database.query(`
-            SELECT groupselected.id,
-            groupselected.detail, groupselected.adminid, 
-            groupselected.groupname, groupselected.createdat,
-            groupselected.isrestricted, groupchats.content AS lastmessage
+            SELECT Distinct on (groupselected.id)
+            groupselected.id,
+            groupselected.detail,
+            groupselected.adminid, 
+            groupselected.groupname, 
+            groupselected.createdat,
+            groupselected.isrestricted, 
+            groupchats.content AS lastmessage
             FROM(
                 SELECT b.id, b.detail, b.adminid, b.groupname, b.createdat, b.isrestricted
                 FROM groupconnects a
@@ -144,6 +148,7 @@ export const getAllGroup = async (req, res, next) => {
             ON groupselected.id = groupchats.groupid
             `, [userId]
         )
+
         const groupList = result.rows.map((item) => {
             return {
                 id: item.id,

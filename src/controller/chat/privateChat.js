@@ -39,11 +39,14 @@ export const CreateChat = async (req, res, next) => {
                 VALUES ($1, $2, 0, $3, $4, $5, FALSE)
                 RETURNING id
             `, [content, uploadResponse, createdAt, senderId, receiverId]);
-
+            console.log(uploadResponse)
             const messageId = dbResult.rows?.[0]?.id;
 
             // Emit to connected user in real-time
-            await FriendRealTimeChat.SendChatToFriend({
+            await FriendRealTimeChat.SendChatToFriend(
+                receiverId,
+                senderId,
+                {
                     id: messageId,
                     content: content,
                     file: uploadResponse,
@@ -51,7 +54,7 @@ export const CreateChat = async (req, res, next) => {
                     senderId: parseInt(senderId),
                     receiverId: parseInt(receiverId),
                     likenum: 0
-                },receiverId);
+                });
             
 
             // Cache to Redis stream asynchronously (non-blocking)
@@ -77,7 +80,10 @@ export const CreateChat = async (req, res, next) => {
 
         // Emit to connected user in real-time
 
-        await FriendRealTimeChat.SendChatToFriend(receiverId,{
+        await FriendRealTimeChat.SendChatToFriend(
+            receiverId,
+            senderId,
+            {
                 id: messageId,
                 content: content,
                 file: safeFile,
@@ -211,7 +217,7 @@ export const RecallChat = async (req, res, next) => {
         await FriendRealTimeChat.RecallMessage(
             receiverId,
             {
-                chatblockId: chatblockId,
+                chatBlockId: chatblockId,
                 senderId: userId
             }
         )        
