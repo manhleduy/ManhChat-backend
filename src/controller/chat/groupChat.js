@@ -1,5 +1,4 @@
 import { database } from "../../config/db.js";
-import { io } from "../../config/socket.js";
 import cloudinary from "../../config/cloundinary.js";
 import { handleNewGroupMessage, fetchAndMergeWithGroupStream } from "../redis/stream/groupMessage.js";
 import GroupRealTimeChat from "../../service/socketChatService.js"
@@ -30,7 +29,7 @@ export const CreateGroupChat = async (req, res, next) => {
             const uploadResponse = await uploadToCloudinary(file);
             if (uploadResponse === "Fail") return res.status(500).json("server error");
 
-            GroupRealTimeChat.SendChatToGroup(groupId, {
+            await GroupRealTimeChat.SendChatToGroup(groupId, {
                 content: content,
                 file: uploadResponse || "",
                 createdAt: createdAt,
@@ -67,7 +66,7 @@ export const CreateGroupChat = async (req, res, next) => {
             });
         }
 
-        GroupRealTimeChat.SendChatToGroup(groupId, {
+        await GroupRealTimeChat.SendChatToGroup(groupId, {
             content: content,
             file: file || "",
             createdAt: createdAt,
@@ -176,7 +175,7 @@ export const LikeGroupChat = async (req, res, next) => {
             return res.status(400).json("missing the required value");
         }
 
-        GroupRealTimeChat.LikeGroupMessage(
+        await GroupRealTimeChat.LikeGroupMessage(
             groupId,
             {
                 chatblockId: parseInt(chatblockId),
@@ -209,7 +208,7 @@ export const RecallGroupChat = async (req, res, next) => {
         }
         
 
-        GroupRealTimeChat.RecallGroupMessage(
+        await GroupRealTimeChat.RecallGroupMessage(
             groupId,
             {
                 chatblockId: chatblockId,

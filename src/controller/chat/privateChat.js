@@ -1,5 +1,4 @@
 import { database } from "../../config/db.js";
-import { io } from "../../config/socket.js";
 import cloudinary from "../../config/cloundinary.js";
 import { fetchAndMergeWithStream, handleNewMessage } from "../redis/stream/friendMessage.js";
 import FriendRealTimeChat from "../../service/socketChatService.js"

@@ -1,69 +1,69 @@
-import {io} from "../config/socket.js"
-import redis from "../config/redis.js";
-import { getReceiverSocketId } from "./socketReceiverConfig.js";
+import redis, { userChatChannel, groupChatChannel } from "../config/redis.js";
 
+// Shared publish helper — wraps redis.publish with error handling.
+// Controllers calling these methods are never affected by a Redis publish failure.
+const publish = async (channel, event, data) => {
+  try {
+    await redis.publish(channel, JSON.stringify({ event, data }));
+  } catch (err) {
+    console.warn(`[RealTimeChat] publish failed on ${channel}:`, err.message);
+  }
+};
 
-class RealTimeChat{
-  //FRIEND CHAT
-  SendChatToFriend=async(receiverId, senderId, data)=>{
-    if(!receiverId){
-      console.log("can emit the socket event: missing required value");
-    }
-    const friendSocketId= await getReceiverSocketId(receiverId.toString());
-    const mySocketId = await getReceiverSocketId(senderId.toString());
-    if(friendSocketId){
-      io.to(friendSocketId).emit("receiveMessage", data);
-      io.to(mySocketId).emit("receiveMessage", data)
-      
-    }
-    return;
+class RealTimeChat {
+  // ── FRIEND CHAT ─────────────────────────────────────────────────────────────
 
-  }
-  LikeFriendMessage= async(receiverId, data)=>{
-    if(!receiverId){
-      console.log("can emit the like event: missing receiverId");
+  SendChatToFriend = async (receiverId, senderId, data) => {
+    if (!receiverId || !senderId) {
+      console.warn("[RealTimeChat] SendChatToFriend: missing receiverId or senderId");
+      return;
     }
-    const friendSocketId= await getReceiverSocketId(receiverId.toString());
-  
-    if(friendSocketId){
-      io.to(friendSocketId).emit("likeMessage", data);
-    }
-    return;
-  }
-  RecallMessage = async(receiverId, data)=>{
-    if(!receiverId){
-      console.log("can emit the recall event: missing receiverId");
-    }
-    const friendSocketId= await getReceiverSocketId(receiverId.toString());
-    if(friendSocketId){
-      io.to(friendSocketId).emit("recallMessage", data);
-    }
-    return;
-  }
+    // Publish to both recipient and sender so every open tab of the sender also receives the echo.
+    await publish(userChatChannel(receiverId), "receiveMessage", data);
+    await publish(userChatChannel(senderId),   "receiveMessage", data);
+  };
 
-  //GROUP CHAT
-  SendChatToGroup=(groupId, data)=>{
-      if(!groupId){
-        console.log("can emit the socket event: missing required value");
-      }
-      io.to(groupId.toString()).emit("receiveGroupMessage", data);
-      return
-  }
-  LikeGroupMessage= (groupId, data)=>{
-    if(!groupId){
-      console.log("can emit the like event: missing groupId");
+  LikeFriendMessage = async (receiverId, data) => {
+    if (!receiverId) {
+      console.warn("[RealTimeChat] LikeFriendMessage: missing receiverId");
+      return;
     }
-    io.to(groupId.toString()).emit("likeGroupMessage", data);
-    return
-  }
-  RecallGroupMessage= async(groupId, data)=>{
-    if(!groupId){
-      console.log("can emit the recall event: missing groupId");
+    await publish(userChatChannel(receiverId), "likeMessage", data);
+  };
+
+  RecallMessage = async (receiverId, data) => {
+    if (!receiverId) {
+      console.warn("[RealTimeChat] RecallMessage: missing receiverId");
+      return;
     }
-    io.to(groupId.toString()).emit("recallGroupMessage", data);
-    return
-  }
+    await publish(userChatChannel(receiverId), "recallMessage", data);
+  };
+
+  // ── GROUP CHAT ───────────────────────────────────────────────────────────────
+
+  SendChatToGroup = async (groupId, data) => {
+    if (!groupId) {
+      console.warn("[RealTimeChat] SendChatToGroup: missing groupId");
+      return;
+    }
+    await publish(groupChatChannel(groupId), "receiveGroupMessage", data);
+  };
+
+  LikeGroupMessage = async (groupId, data) => {
+    if (!groupId) {
+      console.warn("[RealTimeChat] LikeGroupMessage: missing groupId");
+      return;
+    }
+    await publish(groupChatChannel(groupId), "likeGroupMessage", data);
+  };
+
+  RecallGroupMessage = async (groupId, data) => {
+    if (!groupId) {
+      console.warn("[RealTimeChat] RecallGroupMessage: missing groupId");
+      return;
+    }
+    await publish(groupChatChannel(groupId), "recallGroupMessage", data);
+  };
 }
 
 export default new RealTimeChat();
-
